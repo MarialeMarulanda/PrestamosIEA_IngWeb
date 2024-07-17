@@ -28,6 +28,20 @@ if (@!$_SESSION['user']) {
     <script src="js/bootstrap.min.js"></script>
     <script src="js/jquery.mCustomScrollbar.concat.min.js"></script>
     <script src="js/main.js"></script>
+
+        <style>
+
+.biblioteca{
+
+
+    margin-top: 5px;
+    color: white;
+    font-size: 35px;
+}
+
+</style>
+
+
 </head>
 <body>
     <div class="navbar-lateral full-reset">
@@ -45,32 +59,32 @@ if (@!$_SESSION['user']) {
             </div>
             <div class="full-reset nav-lateral-list-menu">
                 <ul class="list-unstyled">
-                     <li><a href="index.php"><i class="zmdi zmdi-home zmdi-hc-fw"></i>&nbsp;&nbsp; Inicio</a></li>
+                    <li><a href="admin.php"><i class="zmdi zmdi-home zmdi-hc-fw"></i>&nbsp;&nbsp; Inicio</a></li>
                     <li>
                         <div class="dropdown-menu-button"><i class="zmdi zmdi-case zmdi-hc-fw"></i>&nbsp;&nbsp; Administración <i class="zmdi zmdi-chevron-down pull-right zmdi-hc-fw"></i></div>
                         <ul class="list-unstyled">
                             <li><a href="registros.php"><i class="zmdi zmdi-balance zmdi-hc-fw"></i>&nbsp;&nbsp; Ver registros</a></li>
-                            <li><a href="registros.php"><i class="zmdi zmdi-balance zmdi-hc-fw"></i>&nbsp;&nbsp; Registrar nuevo administrador</a></li>
-                            <li><a href=""><i class="zmdi zmdi-bookmark-outline zmdi-hc-fw"></i>&nbsp;&nbsp; Agregar material</a></li>
+                            <li><a href="registradmin.php"><i class="zmdi zmdi-balance zmdi-hc-fw"></i>&nbsp;&nbsp; Registrar nuevo administrador</a></li>
+                            <li><a href="agregarMaterial.php"><i class="zmdi zmdi-bookmark-outline zmdi-hc-fw"></i>&nbsp;&nbsp; Agregar material</a></li>
                         </ul>
                     </li>
                     <li>
                         <div class="dropdown-menu-button"><i class="zmdi zmdi-assignment-o zmdi-hc-fw"></i>&nbsp;&nbsp; Catálogo <i class="zmdi zmdi-chevron-down pull-right zmdi-hc-fw"></i></div>
                         <ul class="list-unstyled">
-                            <li><a href="catalogo.php"><i class="zmdi zmdi-bookmark-outline zmdi-hc-fw"></i>&nbsp;&nbsp; Todo</a></li>
-                            <li><a href="catalogo.php?tipo=equipos"><i class="zmdi zmdi-bookmark-outline zmdi-hc-fw"></i>&nbsp;&nbsp; Equipos o herramientas</a></li>
-                            <li><a href="catalogo.php?tipo=componentes"><i class="zmdi zmdi-bookmark-outline zmdi-hc-fw"></i>&nbsp;&nbsp; Componentes</a></li>
+                            <li><a href="catalogoAdmin.php"><i class="zmdi zmdi-bookmark-outline zmdi-hc-fw"></i>&nbsp;&nbsp; Todo</a></li>
+                            <li><a href="catalogoAdmin.php?tipo=equipos"><i class="zmdi zmdi-bookmark-outline zmdi-hc-fw"></i>&nbsp;&nbsp; Equipos o herramientas</a></li>
+                            <li><a href="catalogoAdmin.php?tipo=componentes"><i class="zmdi zmdi-bookmark-outline zmdi-hc-fw"></i>&nbsp;&nbsp; Componentes</a></li>
                         </ul>
                     </li>
                     <li>
                         <div class="dropdown-menu-button"><i class="zmdi zmdi-alarm zmdi-hc-fw"></i>&nbsp;&nbsp; Préstamos y reservaciones <i class="zmdi zmdi-chevron-down pull-right zmdi-hc-fw"></i></div>
                         <ul class="list-unstyled">
-                            <li><a href=""><i class="zmdi zmdi-calendar zmdi-hc-fw"></i>&nbsp;&nbsp; Todos los préstamos</a></li>
+                            <li><a href="prestamos.php"><i class="zmdi zmdi-calendar zmdi-hc-fw"></i>&nbsp;&nbsp; Todos los préstamos</a></li>
                             <li>
-                                <a href="loanpending.html"><i class="zmdi zmdi-time-restore zmdi-hc-fw"></i>&nbsp;&nbsp; Devoluciones pendientes <span class="label label-danger pull-right label-mhover">7</span></a>
+                                <a href="prestamos.php?estatus=vigentes"><i class="zmdi zmdi-time-restore zmdi-hc-fw"></i>&nbsp;&nbsp; Devoluciones pendientes</a>
                             </li>
                             <li>
-                                <a href=""><i class="zmdi zmdi-timer zmdi-hc-fw"></i>&nbsp;&nbsp; Reservaciones <span class="label label-danger pull-right label-mhover">7</span></a>
+                                <a href="prestamos.php?estatus=entregados"><i class="zmdi zmdi-timer zmdi-hc-fw"></i>&nbsp;&nbsp; Prestamos concluídos</a>
                             </li>
                         </ul>
                     </li>
@@ -144,47 +158,42 @@ if (@!$_SESSION['user']) {
 <center>
 
             <?php
+require("conexion.php");
+$sql = "SELECT * FROM login";
+$query = mysqli_query($mysqli, $sql);
 
-                require("conexion.php");
-                $sql=("SELECT * FROM login");
-    
-                $query=mysqli_query($mysqli,$sql);
+echo "<table border='2';>";
+echo "<tr class='warning'>";
+echo "<td>Id</td>";
+echo "<td>Usuario</td>";
+echo "<td>Contraseña</td>";
+echo "<td>Correo</td>";
+echo "<td>Tipo</td>";
+echo "<td>Editar</td>";
+echo "<td>Eliminar</td>";
+echo "</tr>";
 
-                echo "<table border='2';>";
-                    echo "<tr class='warning'>";
-                        echo "<td>Id</td>";
-                        echo "<td>Usaurio</td>";
-                        echo "<td>contraseña</td>";
-                        echo "<td>Correo</td>";
-                        echo "<td>Tipo</td>";
-                        echo "<td>Editar</td>";
-                    echo "</tr>";
+while ($arreglo = mysqli_fetch_array($query)) {
+    echo "<tr class='success'>";
+    echo "<td>$arreglo[0]</td>";
+    echo "<td>$arreglo[1]</td>";
+    echo "<td>$arreglo[2]</td>";
+    echo "<td>$arreglo[3]</td>";
+    if ($arreglo[5] == 1) {
+        echo "<td>Administrador</td>";
+    } else {
+        echo "<td>Investigador</td>";
+    }
+    echo "<td><a href='actualizar.php?id=$arreglo[0]'><img src='assets/img/edit.png' height=20 class='img-rounded'></a></td>";
+    echo "<td>
+            <a href='#' class='btn btn-danger btn-sm delete-btn' data-id='$arreglo[0]' data-toggle='modal' data-target='#confirmDeleteModal'>Eliminar</a>
+          </td>";
+    echo "</tr>";
+}
 
-                
-            ?>
-              
-            <?php 
-                 while($arreglo=mysqli_fetch_array($query)){
-                    echo "<tr class='success'>";
-                        echo "<td>$arreglo[0]</td>";
-                        echo "<td>$arreglo[1]</td>";
-                        echo "<td>$arreglo[2]</td>";
-                        echo "<td>$arreglo[3]</td>";
-                        if($arreglo[5]==1)
-                        echo "<td>Administrador</td>";
-                        else
-                        echo "<td>Investigador</td>";
+echo "</table>";
+?>
 
-                        echo "<td><a href='actualizar.php?id=$arreglo[0]'><img src='assets/img/edit.png' height=20 class='img-rounded'></td>";
-                        
-
-                        
-                    echo "</tr>";
-                }
-
-                echo "</table>";
-
-            ?>
         </center>
 
             <br>
@@ -205,21 +214,24 @@ if (@!$_SESSION['user']) {
 </div>
 
         </div>
-        <div class="modal fade" tabindex="-1" role="dialog" id="ModalHelp">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title text-center all-tittles">ayuda del sistema</h4>
-                </div>
-                <div class="modal-body">
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore dignissimos qui molestias ipsum officiis unde aliquid consequatur, accusamus delectus asperiores sunt. Quibusdam veniam ipsa accusamus error. Animi mollitia corporis iusto.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal"><i class="zmdi zmdi-thumb-up"></i> &nbsp; De acuerdo</button>
+        <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminación</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        ¿Estás seguro de que deseas eliminar este usuario?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <a href="#" id="confirmDeleteButton" class="btn btn-danger">Eliminar</a>
+                    </div>
                 </div>
             </div>
-          </div>
         </div>
        <footer class="footer full-reset">
             <div class="container-fluid">
@@ -249,3 +261,11 @@ Normatividad<br>
     </div>
 </body>
 </html>
+<script>
+    $(document).ready(function() {
+        $('.delete-btn').click(function() {
+            var userId = $(this).data('id');
+            $('#confirmDeleteButton').attr('href', 'eliminarUsuario.php?id=' + userId);
+        });
+    });
+</script>

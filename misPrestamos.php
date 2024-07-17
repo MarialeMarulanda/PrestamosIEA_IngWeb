@@ -1,14 +1,28 @@
+<?php
+session_start();
+include("conexion.php");
+
+if (!isset($_SESSION['user'])) {
+    header("Location: index.php");
+    exit();
+}
+
+$usuario_id = $_SESSION['id'];
+
+$query = "
+    SELECT p.id, c.nombre, c.tipo, p.cantidad, p.fecha_prestamo, p.estatus
+    FROM prestamos p
+    JOIN catalogo c ON p.id_material = c.ID
+    WHERE p.id_usuario = ?
+";
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param("i", $usuario_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$prestamos = $result->fetch_all(MYSQLI_ASSOC);
+?>
+
 <!DOCTYPE html>
-
-    <?php
-    session_start();
-    if (@!$_SESSION['user']) {
-        header("Location:index.php");
-    }elseif ($_SESSION['rol']==1) {
-        header("Location:iniciouser.php");
-    }
-    ?>
-
 <html lang="es">
 <head>
     <title>Principal</title>
@@ -29,18 +43,13 @@
     <script src="js/jquery.mCustomScrollbar.concat.min.js"></script>
     <script src="js/main.js"></script>
 
-
     <style>
-
-.biblioteca{
-
-
-	margin-top: 5px;
-	color: white;
-	font-size: 35px;
-}
-
-</style>
+        .biblioteca {
+            margin-top: 5px;
+            color: white;
+            font-size: 35px;
+        }
+    </style>
 </head>
 <body>
     <div class="navbar-lateral full-reset">
@@ -49,8 +58,8 @@
             <div class="full-reset all-tittles">
                 <i class="visible-xs zmdi zmdi-close pull-left mobile-menu-button" style="line-height: 55px; cursor: pointer; padding: 0 10px; margin-left: 7px;"></i> 
                 <div class="biblioteca">
-                <center>Investigación en Electrónica Avanzada</center>
-             </div>
+                    <center>Investigación en Electrónica Avanzada</center>
+                </div>
             </div>
             <div class="full-reset" style="background-color:#2B3D51; padding: 10px 0; color:#fff;">
                 <figure>
@@ -70,7 +79,7 @@
                         </ul>
                     </li>
                     <li>
-                        <div class="dropdown-menu-button"><i class="zmdi zmdi-alarm zmdi-hc-fw"></i>&nbsp;&nbsp;Préstamos <i class="zmdi zmdi-chevron-down pull-right zmdi-hc-fw"></i></div>
+                        <div class="dropdown-menu-button"><i class="zmdi zmdi-alarm zmdi-hc-fw"></i>&nbsp;&nbsp; Préstamos <i class="zmdi zmdi-chevron-down pull-right zmdi-hc-fw"></i></div>
                         <ul class="list-unstyled">
                             <li><a href="misPrestamos.php"><i class="zmdi zmdi-calendar zmdi-hc-fw"></i>&nbsp;&nbsp; Mis préstamos</a></li>
                             <li>
@@ -86,15 +95,15 @@
         <nav class="navbar-user-top full-reset">
             <ul class="list-unstyled full-reset">
                 <figure>
-                   <img src="assets/img/user03.png" alt="user-picture" class="img-responsive img-circle center-box">
+                    <img src="assets/img/user03.png" alt="user-picture" class="img-responsive img-circle center-box">
                 </figure>
                 <li style="color:#fff; cursor:default;">
                     <span class="all-tittles"><strong><?php echo $_SESSION['user'];?></strong></span>
                 </li>
-                <li  class="tooltips-general exit-system-button" data-href="index.php" data-placement="bottom" title="Salir del sistema">
+                <li class="tooltips-general exit-system-button" data-href="index.php" data-placement="bottom" title="Salir del sistema">
                     <i class="zmdi zmdi-power"></i>
                 </li>
-                <li  class="tooltips-general btn-help" data-placement="bottom" title="Ayuda">
+                <li class="tooltips-general btn-help" data-placement="bottom" title="Ayuda">
                     <i class="zmdi zmdi-help-outline zmdi-hc-fw"></i>
                 </li>
                 <li class="mobile-menu-button visible-xs" style="float: left !important;">
@@ -104,40 +113,56 @@
         </nav>
         <div class="container">
             <div class="page-header">
-              <h1 class="all-tittles"><center>Préstamo de equipo y material</center> </h1>
+                <h1 class="all-tittles"><center>Mis préstamos</center></h1>
             </div>
-        </div>
-        <div class="container-fluid"  style="margin: 50px 0;">
-            <div class="row">
-                <div class="col-xs-12 col-sm-4 col-md-3">
-                    <img src="assets/img/user01.png" alt="user" class="img-responsive center-box" style="max-width: 110px;">
+            <?php if (!empty($prestamos)): ?>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID Préstamo</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Cantidad</th>
+                            <th>Fecha de Préstamo</th>
+                            <th>Estatus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($prestamos as $prestamo): ?>
+                            <tr>
+                                <td><?php echo $prestamo['id']; ?></td>
+                                <td><?php echo $prestamo['nombre']; ?></td>
+                                <td><?php echo $prestamo['tipo']; ?></td>
+                                <td><?php echo $prestamo['cantidad']; ?></td>
+                                <td><?php echo $prestamo['fecha_prestamo']; ?></td>
+                                <td><?php echo $prestamo['estatus']; ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <div class="no-prestamos">
+                    <p>No has solicitado ningún préstamo aún.</p>
                 </div>
-                <div class="col-xs-12 col-sm-8 col-md-8 text-justify lead">
-                    <font class="all-tittles" ><center>CATÁLOGO EN LÍNEA</center></font><br>
-En nuestro catálogo en línea, podrá consultar todas las colecciones de equipos y material electrónico disponibles en las instalaciones del Grupo de Investigación en Electrónica Avanzada. También podrá realizar la reserva del equipo que necesite.
-                </div>
-            </div>
-            <BR><BR>
-           <font class="all-tittles" ><center><a href="catalogo.php"><button>Visitar Catálogo</button></a></center></font><br>
+            <?php endif; ?>
         </div>
+
+        <script src="js/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
         <div class="modal fade" tabindex="-1" role="dialog" id="ModalHelp">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title text-center all-tittles">ayuda del sistema</h4>
-                </div>
-                <div class="modal-body">
-                    <center><h2>Contactanos:</h2></center><br>
-                    <center><img src="assets/img/whatsapp.png" width="50"><font size="5" >whatsapp</font><br><font size="4" ><a href="">+52 55 1234 5678</a></font></center>
-                    <br>
-                    <br>
-                    <center><img src="assets/img/Facebook.png" width="50"><font size="5" >Facebook</font><br><font size="4" >Préstamos IEA</font></center>
-                    <br>
-                    <br>
-
-
-                </div>
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title text-center all-tittles">ayuda del sistema</h4>
+                    </div>
+                    <div class="modal-body">
+                        <center><h2>Contactanos:</h2></center><br>
+                        <center><img src="assets/img/whatsapp.png" width="50"><font size="5">whatsapp</font><br><font size="4"><a href="">+52 55 1234 5678</a></font></center>
+                        <br><br>
+                        <center><img src="assets/img/Facebook.png" width="50"><font size="5">Facebook</font><br><font size="4">Préstamos IEA</font></center>
+                        <br><br>
+                   </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" data-dismiss="modal"><i class="zmdi zmdi-thumb-up"></i> &nbsp; De acuerdo</button>
                 </div>

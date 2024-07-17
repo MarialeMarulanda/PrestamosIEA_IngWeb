@@ -1,12 +1,12 @@
-<!DOCTYPE html>
-
 <?php
 session_start();
 if (@!$_SESSION['user']) {
     header("Location:index.php");
+}elseif ($_SESSION['rol']==2) {
+    header("Location:iniciouser.php");
 }
-?>  
-
+?>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <title>Administradores</title>
@@ -101,9 +101,6 @@ if (@!$_SESSION['user']) {
                 <li  class="tooltips-general exit-system-button" data-href="index.php" data-placement="bottom" title="Salir del sistema">
                     <i class="zmdi zmdi-power"></i>
                 </li>
-                <li  class="tooltips-general search-book-button" data-href="searchbook.html" data-placement="bottom" title="Buscar libro">
-                    <i class="zmdi zmdi-search"></i>
-                </li>
                 <li  class="tooltips-general btn-help" data-placement="bottom" title="Ayuda">
                     <i class="zmdi zmdi-help-outline zmdi-hc-fw"></i>
                 </li>
@@ -112,112 +109,30 @@ if (@!$_SESSION['user']) {
                 </li>
             </ul>
         </nav>
-        <div class="container">
-            <div class="page-header">
-              <h1 class="all-tittles">Sistema de préstamos IEA <small>Administración Usuarios</small></h1>
+    <div class="container mt-5">
+        <h2 class="text-center">Registrar nuevo administrador</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <form action="guardaradmin.php" method="POST">
+                    <div class="form-group">
+                        <label for="user">Usuario:</label>
+                        <input type="text" class="form-control" id="user" name="user" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pass">Contraseña:</label>
+                        <input type="password" class="form-control" id="pass" name="pass" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Correo electrónico:</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <input type="hidden" name="rol" value="1"> <!-- Asignando rol de administrador -->
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <a href="registros.php" class="btn btn-secondary">Cancelar</a>
+                </form>
             </div>
-        </div>
-        <div class="container-fluid"  style="margin: 50px 0;">
-            <div class="row">
-                <div class="col-xs-12 col-sm-4 col-md-3">
-                    <img src="assets/img/user01.png" alt="user" class="img-responsive center-box" style="max-width: 110px;">
-                </div>
-                <div class="col-xs-12 col-sm-8 col-md-8 text-justify lead">
-                    Bienvenido a la sección para registrar nuevos administradores del sistema, debes de llenar todos los campos del siguiente formulario para registrar un administrador
-                </div>
-            </div>
-        </div>
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-xs-12 lead">
-                    <ol class="breadcrumb">
-                      <li class="active">Nuevo administrador</li>
-                      <li><a href="listadmin.html">Listado de administradores</a></li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-        <div class="container-fluid"  style="margin: 50px 0;">
-
-
-<div class="row">
-    
-    
-        
-    <div class="span12">
-
-        <div class="caption">
-            <center>
-        <div class="well well-small ">
-        <div style="text-align: center;"><h2> Administración de usuarios</h2></div>
-        <hr class="soft"/>
-        <div class="row-fluid">
-        
-        <?php
-        extract($_GET);
-        require("conexion.php");
-
-        $sql="SELECT * FROM login WHERE id=$id";
-        $ressql=mysqli_query($mysqli,$sql);
-        while ($row=mysqli_fetch_row ($ressql)){
-                $id=$row[0];
-                $user=$row[1];
-                $pass=$row[2];
-                $email=$row[3];
-                $pasadmin=$row[4];
-            }
-
-
-
-        ?>
-
-        <form action="ejecutaactualizar.php" method="post">
-                Id<br><input type="text" name="id" value= "<?php echo $id ?>" readonly="readonly"><br>
-                Usuario<br> <input type="text" name="user" value="<?php echo $user?>"><br>
-                Password usuario<br> <input type="text" name="pass" value="<?php echo $pass?>"><br>
-                Correo usuario<br> <input type="text" name="email" value="<?php echo $email?>"><br>
-                Pssword administrador<br> <input type="text" name="pasadmin" value="<?php echo $pasadmin?>"><br>
-                
-                <br>
-                <input type="submit" value="Guardar" class="btn btn-primary">
-                <button class="btn btn-"><a href="registros.php">volver</a></button>
-            </form>
-
-                  
-        
-        
-        <div class="span8">
-        
-        </div>  
-        </div>  
-        <br/>
-        
-
-
-        
-        </div>
-
-        
-
-
-        
-</div>
-</div>
-
-    </div>
-
-
-</center>
-
-
-
-
-
-
-
-
-        </div>
-        <div class="modal fade" tabindex="-1" role="dialog" id="ModalHelp">
+        </div></div>
+    <div class="modal fade" tabindex="-1" role="dialog" id="ModalHelp">
           <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -225,7 +140,15 @@ if (@!$_SESSION['user']) {
                     <h4 class="modal-title text-center all-tittles">ayuda del sistema</h4>
                 </div>
                 <div class="modal-body">
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore dignissimos qui molestias ipsum officiis unde aliquid consequatur, accusamus delectus asperiores sunt. Quibusdam veniam ipsa accusamus error. Animi mollitia corporis iusto.
+                    <center><h2>Contactanos:</h2></center><br>
+                    <center><img src="assets/img/whatsapp.png" width="50"><font size="5" >whatsapp</font><br><font size="4" ><a href="">+52 55 1234 5678</a></font></center>
+                    <br>
+                    <br>
+                    <center><img src="assets/img/Facebook.png" width="50"><font size="5" >Facebook</font><br><font size="4" >Préstamos IEA</font></center>
+                    <br>
+                    <br>
+
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" data-dismiss="modal"><i class="zmdi zmdi-thumb-up"></i> &nbsp; De acuerdo</button>

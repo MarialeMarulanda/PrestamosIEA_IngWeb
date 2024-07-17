@@ -1,12 +1,40 @@
-<!DOCTYPE html>
-
 <?php
 session_start();
-if (@!$_SESSION['user']) {
-    header("Location:index.php");
-}
-?>  
+include("conexion.php");
 
+// Determinar el tipo de filtro
+$estatus = isset($_GET['estatus']) ? $_GET['estatus'] : 'todos';
+
+// Consulta SQL base para obtener los préstamos con los nombres de usuario y material
+$query = "SELECT prestamos.id, prestamos.id_usuario, login.user AS nombre_usuario, 
+                 prestamos.id_material, catalogo.nombre AS nombre_material, 
+                 prestamos.cantidad, prestamos.fecha_prestamo, prestamos.estatus
+          FROM prestamos
+          INNER JOIN login ON prestamos.id_usuario = login.ID
+          INNER JOIN catalogo ON prestamos.id_material = catalogo.ID";
+
+// Aplicar filtro según el estatus seleccionado
+if ($estatus == 'vigentes') {
+    $query .= " WHERE prestamos.estatus = 'vigente'";
+} elseif ($estatus == 'entregados') {
+    $query .= " WHERE prestamos.estatus = 'entregado'";
+}
+
+// Ordenar por fecha de préstamo (más reciente primero)
+$query .= " ORDER BY prestamos.fecha_prestamo DESC";
+
+$result = $mysqli->query($query);
+
+// Verificar si hay resultados
+if ($result->num_rows > 0) {
+    $prestamos = $result->fetch_all(MYSQLI_ASSOC);
+} else {
+    $prestamos = [];
+}
+
+?>
+
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <title>Administradores</title>
@@ -101,9 +129,6 @@ if (@!$_SESSION['user']) {
                 <li  class="tooltips-general exit-system-button" data-href="index.php" data-placement="bottom" title="Salir del sistema">
                     <i class="zmdi zmdi-power"></i>
                 </li>
-                <li  class="tooltips-general search-book-button" data-href="searchbook.html" data-placement="bottom" title="Buscar libro">
-                    <i class="zmdi zmdi-search"></i>
-                </li>
                 <li  class="tooltips-general btn-help" data-placement="bottom" title="Ayuda">
                     <i class="zmdi zmdi-help-outline zmdi-hc-fw"></i>
                 </li>
@@ -114,110 +139,54 @@ if (@!$_SESSION['user']) {
         </nav>
         <div class="container">
             <div class="page-header">
-              <h1 class="all-tittles">Sistema de préstamos IEA <small>Administración Usuarios</small></h1>
+              <h1 class="all-tittles">Lista de Préstamos</h1>
             </div>
-        </div>
-        <div class="container-fluid"  style="margin: 50px 0;">
-            <div class="row">
-                <div class="col-xs-12 col-sm-4 col-md-3">
-                    <img src="assets/img/user01.png" alt="user" class="img-responsive center-box" style="max-width: 110px;">
-                </div>
-                <div class="col-xs-12 col-sm-8 col-md-8 text-justify lead">
-                    Bienvenido a la sección para registrar nuevos administradores del sistema, debes de llenar todos los campos del siguiente formulario para registrar un administrador
-                </div>
             </div>
+        <div class="form-group">
+            <label for="estatus">Mostrar:</label>
+            <select name="estatus" id="estatus" class="form-control" onchange="filtroPrestamos()">
+                <option value="todos" <?php if ($estatus == 'todos') echo 'selected'; ?>>Todos</option>
+                <option value="vigentes" <?php if ($estatus == 'vigentes') echo 'selected'; ?>>Vigentes</option>
+                <option value="entregados" <?php if ($estatus == 'entregados') echo 'selected'; ?>>Entregados</option>
+            </select>
         </div>
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-xs-12 lead">
-                    <ol class="breadcrumb">
-                      <li class="active">Nuevo administrador</li>
-                      <li><a href="listadmin.html">Listado de administradores</a></li>
-                    </ol>
-                </div>
-            </div>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ID User</th>
+                        <th>User</th>
+                        <th>ID Material</th>
+                        <th>Material</th>
+                        <th>Cantidad</th>
+                        <th>Fecha de Préstamo</th>
+                        <th>Estatus</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($prestamos as $prestamo): ?>
+                        <tr>
+                            <td><?php echo $prestamo['id']; ?></td>
+                            <td><?php echo $prestamo['id_usuario']; ?></td>
+                            <td><?php echo $prestamo['nombre_usuario']; ?></td>
+                            <td><?php echo $prestamo['id_material']; ?></td>
+                            <td><?php echo $prestamo['nombre_material']; ?></td>
+                            <td><?php echo $prestamo['cantidad']; ?></td>
+                            <td><?php echo $prestamo['fecha_prestamo']; ?></td>
+                            <td><?php echo $prestamo['estatus']; ?></td>
+                            <td>
+                                <?php if ($prestamo['estatus'] == 'vigente'): ?>
+                                    <a href="cambiarEstatus.php?id=<?php echo $prestamo['id']; ?>" class="btn btn-success btn-sm">Marcar como entregado</a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
-        <div class="container-fluid"  style="margin: 50px 0;">
-
-
-<div class="row">
-    
-    
-        
-    <div class="span12">
-
-        <div class="caption">
-            <center>
-        <div class="well well-small ">
-        <div style="text-align: center;"><h2> Administración de usuarios</h2></div>
-        <hr class="soft"/>
-        <div class="row-fluid">
-        
-        <?php
-        extract($_GET);
-        require("conexion.php");
-
-        $sql="SELECT * FROM login WHERE id=$id";
-        $ressql=mysqli_query($mysqli,$sql);
-        while ($row=mysqli_fetch_row ($ressql)){
-                $id=$row[0];
-                $user=$row[1];
-                $pass=$row[2];
-                $email=$row[3];
-                $pasadmin=$row[4];
-            }
-
-
-
-        ?>
-
-        <form action="ejecutaactualizar.php" method="post">
-                Id<br><input type="text" name="id" value= "<?php echo $id ?>" readonly="readonly"><br>
-                Usuario<br> <input type="text" name="user" value="<?php echo $user?>"><br>
-                Password usuario<br> <input type="text" name="pass" value="<?php echo $pass?>"><br>
-                Correo usuario<br> <input type="text" name="email" value="<?php echo $email?>"><br>
-                Pssword administrador<br> <input type="text" name="pasadmin" value="<?php echo $pasadmin?>"><br>
-                
-                <br>
-                <input type="submit" value="Guardar" class="btn btn-primary">
-                <button class="btn btn-"><a href="registros.php">volver</a></button>
-            </form>
-
-                  
-        
-        
-        <div class="span8">
-        
-        </div>  
-        </div>  
-        <br/>
-        
-
-
-        
-        </div>
-
-        
-
-
-        
-</div>
-</div>
-
-    </div>
-
-
-</center>
-
-
-
-
-
-
-
-
-        </div>
-        <div class="modal fade" tabindex="-1" role="dialog" id="ModalHelp">
+   <div class="modal fade" tabindex="-1" role="dialog" id="ModalHelp">
           <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -225,7 +194,15 @@ if (@!$_SESSION['user']) {
                     <h4 class="modal-title text-center all-tittles">ayuda del sistema</h4>
                 </div>
                 <div class="modal-body">
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore dignissimos qui molestias ipsum officiis unde aliquid consequatur, accusamus delectus asperiores sunt. Quibusdam veniam ipsa accusamus error. Animi mollitia corporis iusto.
+                    <center><h2>Contactanos:</h2></center><br>
+                    <center><img src="assets/img/whatsapp.png" width="50"><font size="5" >whatsapp</font><br><font size="4" ><a href="">+52 55 1234 5678</a></font></center>
+                    <br>
+                    <br>
+                    <center><img src="assets/img/Facebook.png" width="50"><font size="5" >Facebook</font><br><font size="4" >Préstamos IEA</font></center>
+                    <br>
+                    <br>
+
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" data-dismiss="modal"><i class="zmdi zmdi-thumb-up"></i> &nbsp; De acuerdo</button>
@@ -259,5 +236,18 @@ Normatividad<br>
             <div class="footer-copyright full-reset all-tittles">© 2024 Alejandra Marulanda</div>
         </footer>
     </div>
+
+    <script>
+        // Función para redireccionar con el filtro seleccionado
+        function filtroPrestamos() {
+            var estatus = document.getElementById("estatus").value;
+            window.location.href = "prestamos.php?estatus=" + estatus;
+        }
+    </script>
 </body>
 </html>
+
+<?php
+// Cerrar la conexión
+$mysqli->close();
+?>

@@ -1,12 +1,37 @@
-<!DOCTYPE html>
-
 <?php
 session_start();
 if (@!$_SESSION['user']) {
     header("Location:index.php");
+}elseif ($_SESSION['rol']==2) {
+    $ir="iniciouser.php";
+}else{
+    $ir="admin.php";
 }
-?>  
 
+include("conexion.php");
+
+$tipo = isset($_GET['tipo']) ? $_GET['tipo'] : 'todo';
+
+// Construir la consulta SQL basada en el filtro
+if ($tipo == 'equipos') {
+    $query = "SELECT ID, nombre, tipo, cantidad, disponibles FROM catalogo WHERE tipo = 'equipo'";
+} elseif ($tipo == 'componentes') {
+    $query = "SELECT ID, nombre, tipo, cantidad, disponibles FROM catalogo WHERE tipo = 'componente'";
+} else {
+    $query = "SELECT ID, nombre, tipo, cantidad, disponibles FROM catalogo";
+}
+
+$result = $mysqli->query($query);
+
+// Verifica si hay resultados
+if ($result->num_rows > 0) {
+    $catalogo = $result->fetch_all(MYSQLI_ASSOC);
+} else {
+    $catalogo = [];
+}
+?>
+
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <title>Administradores</title>
@@ -93,18 +118,15 @@ if (@!$_SESSION['user']) {
         <nav class="navbar-user-top full-reset">
             <ul class="list-unstyled full-reset">
                 <figure>
-                   <img src="assets/img/user01.png" alt="user-picture" class="img-responsive img-circle center-box">
+                    <img src="assets/img/user03.png" alt="user-picture" class="img-responsive img-circle center-box">
                 </figure>
                 <li style="color:#fff; cursor:default;">
-                    <strong><?php echo $_SESSION['user'];?></strong>
+                    <span class="all-tittles"><strong><?php echo $_SESSION['user']; ?></strong></span>
                 </li>
-                <li  class="tooltips-general exit-system-button" data-href="index.php" data-placement="bottom" title="Salir del sistema">
+                <li class="tooltips-general exit-system-button" data-href="index.php" data-placement="bottom" title="Salir del sistema">
                     <i class="zmdi zmdi-power"></i>
                 </li>
-                <li  class="tooltips-general search-book-button" data-href="searchbook.html" data-placement="bottom" title="Buscar libro">
-                    <i class="zmdi zmdi-search"></i>
-                </li>
-                <li  class="tooltips-general btn-help" data-placement="bottom" title="Ayuda">
+                <li class="tooltips-general btn-help" data-placement="bottom" title="Ayuda">
                     <i class="zmdi zmdi-help-outline zmdi-hc-fw"></i>
                 </li>
                 <li class="mobile-menu-button visible-xs" style="float: left !important;">
@@ -114,132 +136,57 @@ if (@!$_SESSION['user']) {
         </nav>
         <div class="container">
             <div class="page-header">
-              <h1 class="all-tittles">Sistema de préstamos IEA <small>Administración Usuarios</small></h1>
+                <h1 class="all-tittles"><center>Catálogo</center></h1>
             </div>
-        </div>
-        <div class="container-fluid"  style="margin: 50px 0;">
-            <div class="row">
-                <div class="col-xs-12 col-sm-4 col-md-3">
-                    <img src="assets/img/user01.png" alt="user" class="img-responsive center-box" style="max-width: 110px;">
+            <form method="GET" action="catalogo.php" class="form-inline">
+                <div class="form-group">
+                    <label for="tipo">Mostrar:</label>
+                    <select name="tipo" id="tipo" class="form-control">
+                        <option value="todo" <?php if ($tipo == 'todo') echo 'selected'; ?>>Todo</option>
+                        <option value="equipos" <?php if ($tipo == 'equipos') echo 'selected'; ?>>Equipos o herramientas</option>
+                        <option value="componentes" <?php if ($tipo == 'componentes') echo 'selected'; ?>>Componentes</option>
+                    </select>
                 </div>
-                <div class="col-xs-12 col-sm-8 col-md-8 text-justify lead">
-                    Bienvenido a la sección para registrar nuevos administradores del sistema, debes de llenar todos los campos del siguiente formulario para registrar un administrador
-                </div>
-            </div>
-        </div>
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-xs-12 lead">
-                    <ol class="breadcrumb">
-                      <li class="active">Nuevo administrador</li>
-                      <li><a href="listadmin.html">Listado de administradores</a></li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-        <div class="container-fluid"  style="margin: 50px 0;">
-
-
-<div class="row">
-    
-    
-        
-    <div class="span12">
-
-        <div class="caption">
-            <center>
-        <div class="well well-small ">
-        <div style="text-align: center;"><h2> Administración de usuarios</h2></div>
-        <hr class="soft"/>
-        <div class="row-fluid">
-        
-        <?php
-        extract($_GET);
-        require("conexion.php");
-
-        $sql="SELECT * FROM login WHERE id=$id";
-        $ressql=mysqli_query($mysqli,$sql);
-        while ($row=mysqli_fetch_row ($ressql)){
-                $id=$row[0];
-                $user=$row[1];
-                $pass=$row[2];
-                $email=$row[3];
-                $pasadmin=$row[4];
-            }
-
-
-
-        ?>
-
-        <form action="ejecutaactualizar.php" method="post">
-                Id<br><input type="text" name="id" value= "<?php echo $id ?>" readonly="readonly"><br>
-                Usuario<br> <input type="text" name="user" value="<?php echo $user?>"><br>
-                Password usuario<br> <input type="text" name="pass" value="<?php echo $pass?>"><br>
-                Correo usuario<br> <input type="text" name="email" value="<?php echo $email?>"><br>
-                Pssword administrador<br> <input type="text" name="pasadmin" value="<?php echo $pasadmin?>"><br>
-                
-                <br>
-                <input type="submit" value="Guardar" class="btn btn-primary">
-                <button class="btn btn-"><a href="registros.php">volver</a></button>
+                <button type="submit" class="btn btn-primary">Filtrar</button>
             </form>
-
-                  
-        
-        
-        <div class="span8">
-        
-        </div>  
-        </div>  
-        <br/>
-        
-
-
-        
         </div>
-
-        
-
-
-        
-</div>
-</div>
-
-    </div>
-
-
-</center>
-
-
-
-
-
-
-
-
+        <div class="container-fluid" style="margin: 50px 0;">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Disponibles</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($catalogo)): ?>
+                        <?php foreach ($catalogo as $item): ?>
+                            <tr>
+                                <td><?php echo $item['ID']; ?></td>
+                                <td><?php echo $item['nombre']; ?></td>
+                                <td><?php echo $item['tipo']; ?></td>
+                                <td><?php echo $item['cantidad']; ?></td>
+                                <td><?php echo $item['disponibles']; ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="5" class="text-center">No hay datos disponibles</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
-        <div class="modal fade" tabindex="-1" role="dialog" id="ModalHelp">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title text-center all-tittles">ayuda del sistema</h4>
-                </div>
-                <div class="modal-body">
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore dignissimos qui molestias ipsum officiis unde aliquid consequatur, accusamus delectus asperiores sunt. Quibusdam veniam ipsa accusamus error. Animi mollitia corporis iusto.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal"><i class="zmdi zmdi-thumb-up"></i> &nbsp; De acuerdo</button>
-                </div>
-            </div>
-          </div>
-        </div>
-       <footer class="footer full-reset">
+        <footer class="footer full-reset">
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-xs-12 col-sm-6">
                         <h4 class="all-tittles">Acerca de</h4>
                         <p>
-Proyecto de préstamo para IEA<br>
+                          Proyecto de préstamo para IEA<br>
 Directorio <br>
 Normatividad<br>
                         </p>
